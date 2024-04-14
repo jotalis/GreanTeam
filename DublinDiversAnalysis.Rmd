@@ -1,0 +1,133 @@
+---
+title: "Statistcal Analysis"
+author: "Sohum Pulijal"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v,uniqv)))]
+}
+```
+
+## Problem
+
+As an AirBnB manager expediting the efficiency of the search engine to provide a cleaner UI experience can be tackled in many different ways. Utilizing the data of searches and host/customer interaction we have to find flaws in the current system and give suggestions how to fix these problem spots.
+
+The way our team is going to go about this is the find the places where the host can adjust their postings in order to make the experience smoother for both parties involved.
+ 
+
+## Methods
+
+This first step to any data analysis is looking at all of the variables given and finding the best way to condense the data in order to make it readable and analyzable. This is done through the pre-processing of the data, where couple new categories were created. The new columns of acceptances, inquires, and long_trip were created through pre-processing. To be able to digest the data is a crucial step in the analysis of the data set. 
+
+All of the pre-processing is the introduction to the overall project. The bulk of the analysis is from the tools used in order to pick apart the data, since until broken down data is simply useful numbers. The most important tools that are being used is summary statistics and the use of the p-value. The p-value is the tool used the most in this analysis. In order to prove that the numbers have an effect on something is the primary purpose of the p-value. The tests that we plan to use in order to test different aspects of the is the standard summary statistics test and the testing of seeing if each variable is significant. 
+
+Simply using untransformed data will not yield in significant results and important patterns will be missed. Incorporating the use of Generalized Linear Models to transform the data will lead to a better understanding of the link between long trip since it is a binomial variable. An ANOVA test will also be done in order to determine the use of interaction terms and the necessity of a full model in order to gather conclusions from the data about AirBnB.
+
+Additionally, the use of odds ratios and correlation will be used on some instances. 
+
+```{r, include = FALSE}
+output <- read.csv("~/Downloads/final_preprocessed.csv")
+
+output$long_trip <- ifelse(output$n_nights < 3, 0, 1)
+```
+## Graph Analysis
+
+The Number of Messages to Acceptances graph directly agrees with conclusions that we concluded. But the visual aid of the graph highlights a right skew to the graph. The range of the histogram is 30 indicating a decently large spread. There don't seem to be any obvious outliers. This graph is unimodal. The mean of the data seems to be around 17 and the median is about 12.
+
+The Origin Country to Acceptances graph has multiple peaks, and seems ot be multi modal in that sense. The spread of the data is over 73 countries and spans for 30 bookings, indicating a large spread. There do not seem to be outliers. 
+## Analysis
+
+After looking at the correlation map of all of the numeric variables we were unable to determine any significant correlation straight off of the bat (Map is mentioned in presentation and in github). We beloved that the acceptance rate has the most influence in selections, and it affects how we can change the hosts perception in order to better their postings in order to help. 
+ 
+As a baseline we testing number of searches, number of nights and number of messages, the rest of the variables did not have a relevant or significant p-value to be considered. 
+```{r}
+summary(lm(output$acceptances ~ output$n_searches + output$n_nights + output$n_messages))
+```
+$$
+\widehat{\text{Acceptance}} = \hat{\beta}_0 + \hat{\beta}_1 * \text{(Searches)} + \hat{\beta}_2 * \text{(Nights)} + \hat{\beta}_3 * \text{(Messages)}
+$$
+
+$$
+\widehat{\text{Acceptance}} = 1.368009 + 0.003364 * \text{(Searches)} + 0.003655 * \text{(Nights)} - 0.011888 * \text{(Messages)}
+$$
+The variables tested above is the Acceptance rate, which is the rate at which requests for AirBnB are accepted and followed through with. The variables seeing if there is a correlation are the number of searches (the number of times a user has searched for an AirBnB), the number of nights that the user is staying, and the number of messages that were sent between a host and a customer before accepting. Looking at the p-value of the data, the number of searches has a p-value of 0.0017, the number of nights has a p-value of 0.02 and the number of messages sent has a p-value of 9.96e-0.5 $\thickapprox$ 0. Since all of the p-values are less than the significance level of 0.05, we can conclude that they are significant towards the data. Since they are significant we can conclude that the number of searches and number of nights have a positive correlation with the acceptance rate, meaning as number of nights and number of searches increase by one the acceptance rate increases by 0.003364 and 0.003665 respectively. While, the number of messages shows a decreasing relationship with -0.01188 decrease in acceptance as the number of message increases by 1.
+
+After looking at the length of the trip, reflected by the long trip value (Where 0 are trips shorter than 3 nights, and 1 reflecting trips longer than 3 days), this affects the way that hosts can change their algorithm in order to better the efficiency of the searches. 
+
+The binomial variable of long trip pushed for a generalized linear model, with a logit link. It was only significant against the inquiry parameter.
+p-value of 0.0017, the number of nights has a p-value of 0.02 and the number of messages sent has a p-value of 9.96e-0.5 $\thickapprox$ 0. Since all of the p-values are less than the significance level of 0.05, we can conclude that they are significant towards the data. Since they are significant we can conclude that the number of searches and number of nights have a positive correlation with the acceptance rate, meaning as number of nights and number of searches increase by one the acceptance rate increases by 0.003364 and 0.003665 respectively. While, the number of messages shows a decreasing relationship with -0.01188 decrease in acceptance as the number of message increases by 1.
+
+After looking at the length of the trip, reflected by the long trip value (Where 0 are trips shorter than 3 nights, and 1 reflecting trips longer than 3 days), this affects the way that hosts can change their algorithm in order to better the efficiency of the searches. 
+
+The binomial variable of long trip pushed for a generalized linear model, with a logit link. It was only significant against the inquiry parameter.
+```{r}
+summary(glm(output$long_trip ~ output$inquiries, family=binomial(link="logit")))
+```
+
+$$
+\text{Long Trip} = \beta_0 + \beta_1 * \text{(Number Of Inquries)}
+$$
+
+$$
+\text{Long Trip} = 0.159015 + 0.030487 * \text{(Number Of Inquries)}
+$$
+ 
+The likelihood of a long trip versus number of inquires. Based on the the p-value for the intercept and the number of inquiries, which is 2.39e-5, which is essentially 0. Since the alpha significance level is 0.05, the p-value is less than this value indicating that the number of inquires is significant. The OR of 1.030956 indicates that as the number of inquires increase by one the likelihood of the trip being a longer one, which is greater than 3 nights increasing by 0.03. Simply, inquiring 6 times as compared to 2 increases the odds of it being a longer trip by 12% between each instance.
+
+```{r}
+summary(lm(output$acceptances ~ output$origin_country))
+```
+$$
+\widehat{\text{Acceptance}} = \hat{\beta}_0 + \hat{\beta}_1 * \text{(Country:AR)} + ... + \hat{\beta}_{73} * \text{(Country:ZA)}
+$$
+The formula with the preliminary value is:
+$$
+\widehat{\text{Acceptance}} = 3.2000 - 1.4857 * \text{(Country:AR)} + ... - 2.0182 * \text{(Country:ZA)}
+$$
+Based on the data, most of the countries have significant p-values. We can also test to see if an interaction term is significant, testing between number of nights, number of messages and number of searches. Since there are so many countries I will focus on the ones with the least significant p-values such as CO, GE, IN, IS, KY, LS and UZ, with 0.160485, 0.858192, 0.931599, 0.283736, 0.474808, 0.283736 and 0.283736 respectively, and each of which are greater than the significance value of 0.05, therefore we cannot prove that they are significant. This means that they do not have as much of an influence on the data as the other countries. One thing ot note before deep-diving in analysis is that all of the countries have a negative effect on the acceptances. 
+
+```{r}
+full <- lm(output$acceptances ~ output$origin_country + output$n_nights + output$n_messages + output$n_searches + output$origin_country * output$n_nights + output$origin_country * output$n_searches + output$origin_country * output$n_messages)
+
+reduced <- lm(output$acceptances ~ output$origin_country + output$n_nights + output$n_messages + output$n_searches)
+summary(full)
+```
+The formula for the full model is:
+$$
+\widehat{\text{Acceptance}} = \hat{\beta}_0 + \hat{\beta}_1 * \text{(Country:AR)} + ... + \hat{\beta}_{73} * \text{(Country:ZA)} + \hat{\beta}_{74} * \text{(Messages)} + \hat{\beta}_{75} * \text{(Nights)} + \hat{\beta}_{76} * \text{(Searches)} + \hat{\beta}_{76} * \text{(Country:AR)} * \text{(Night)} + ... + \hat{\beta}_{149} * \text{(Country:ZA)} * \text{(Night)} + \hat{\beta}_{150} * \text{(Country:AR)} * \text{(Messages)} + ... + \hat{\beta}_{223} * \text{(Country:ZA)} * \text{(Messages)} + \hat{\beta}_{224} * \text{(Country:AR)} * \text{(Searches)} + .. + \hat{\beta}_{297} * \text{(Country:ZA)} * \text{(Searches)}
+$$
+Before we analyzes this data set we should do an ANOVA test between the full model, with the interaction terms, and the reduced model, without the interaction terms, in order to determine if the reduced model is sufficient.
+
+The null hypothesis is $H_0: \beta_{76} = ... = \beta_{297} = 0$ and the alternate is $H_a: \text{at least one is not equal to 0}$
+
+```{r}
+anova(full, reduced)
+```
+
+After conducting the ANOVA test, the p-value of 2.755e-05, which is essentially 0, indicates that the null is true and the reduced model is sufficient for the analysis that we are doing. 
+
+```{r}
+summary(reduced)
+```
+Looking at the reduced model of the country of origin, number of searches, number of nights, number of messages and number of searches affecting the acceptance rate, the analysis of number of searches, number of nights and number of messages has been done. The country of origin has a different level of negative effect on the acceptance rate and depending on the country. Some countries have no effect on the acceptance rate at all. 
+
+Now that we have the raw numbers, we need to make sense of them and use them in order to better the algorithm and the way that AirBnB works to help. 
+
+
+## Results and Conclusion
+
+From, the analysis we can draw a couple of results. First, the location of the customer has an effect on the likelihood that the hosts will accept the inquiry given by the customer. Overall all countries have a negative correlation with the acceptance rate. Some countries have a greater negative than others. We can use this in order to modify the hosts postings to apply specifically to certain countries, since these hosts are less likely to reject simply based upon where the customer is from. 
+
+Second, the number of nights and the number of searches both positively influence the likelihood that customers are accepted by hosts. Though this data may seem better geared towards the customers, we can adjust the hosts postings to better use this as well. The longer the number of nights that a customer wishes to stay increases the likelihood that a host will accept. This makes sense as the longer a customer wants to stay leads to a greater revenue and less time that the AirBnB is being unoccupied. Customers who want to stay longer can be more likely given to hosts who have had less requests in order to promote hosts to continue to offer their services to AirBnB. The number of searches shows that customers who have more searches increased the likelihood to get accepted. This could be used to help change hosts postings by highlighting the hosts who a strugling more to get offers by changing the algorithm to offer them more.
+
+The third component is that the more messages that are sent to a host by a customer there is a decrease in their likelihood to get accepted. This tells us that if there are a lot of messaging it makes the hosts less likely to accept. This can be used in order to incentives hosts to put more detailed postings in order to decrease the number of messages and to incentives less messages sent. Therefore leaving the customer satisfied with the information and the decreased effort to get the information and the host does not have to deal with constant messaging. There could also be a small fee per message that the host has to responded in order to give hosts more of a reason to be more thorough.
+
+The last part to remember is the number of inquires led to an increased likelihood that the trip was considered a "long trip". This is the result of longer trips being more important and the living conditions of an AirBnB mattering more the longer a customer has to stay there. This can be remedied by editing the search engine in order to give higher rated hosts to customers going for longer trips, since the condition of the AirBnB and the house matter more. This will make the AirBnB searching more efficient, another way would be increasing the diligence of hosts to make their postings more content rich.
+
+The analysis of this data as an AirBnB manager helped in efficiency of making the site easier to use and to increase the number of users, in the host and customer department.
