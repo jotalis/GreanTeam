@@ -63,11 +63,6 @@ def process_user_prompt(client, user_prompt):
     # with open(f"./image-{event_handler.image_id}.png", "wb") as file:
     #     file.write(image_data_bytes)
         
-    # file_deletion_status = client.beta.assistants.files.delete(
-    #     assistant_id="asst_1AVGmHhCpOt0L1GL7ykWNlYi",
-    #     file_id=event_handler.image_id
-    # )
-    # print(extracted_text, image_data)
     return extracted_text, image_data
 
 

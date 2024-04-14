@@ -250,11 +250,6 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Receive user prompt from the WebSocket
-            # json_data = await websocket.receive_text()
-            # print(f"Received data: {json_data}") 
-            # data = json.loads(json_data)
-            
-            # user_prompt = data['user_prompt']
             user_prompt = await websocket.receive_text()
             user_prompt = update_user_prompt(user_prompt)
             print(f"Updated prompt: {user_prompt}")
@@ -264,9 +259,7 @@ async def websocket_endpoint(websocket: WebSocket):
             print(f"Response: {response_text}, Image Data: {image_data}")  
 
             # Send back the processed response and image data
-            # await websocket.send_text({"text": response_text, "image": image_data})
             await websocket.send_text(json.dumps({"text": response_text, "image": image_data}))
-            # await websocket.send_text(image_data)
 
     except WebSocketDisconnect:
         print("Client disconnected")
