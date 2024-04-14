@@ -32,12 +32,5 @@ class EventHandler(AssistantEventHandler):
           if output.type == "logs":
             print(f"\n{output.logs}", flush=True)
           elif output.type == "image":
-            # print(type(output.image))
             image_id = output.image.file_id
-            # print(image_id)
             self.image_id = image_id
-            # image_data = client.files.content(image_id)
-            # image_data_bytes = image_data.read()
-            # self.image_data = base64.b64encode(image_data_bytes).decode('utf-8')
-            # with open(f"./image-{image_id}.png", "wb") as file:
-            #     file.write(image_data_bytes)

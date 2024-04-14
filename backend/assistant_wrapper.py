@@ -9,8 +9,8 @@ def update_user_prompt(prompt):
     
     prompt += """
     Generate code to perform the calculations to answer. Then, create a visualization using seaborn. 
-    'file-TzOVAHko5TwyrRsaPySmIR0Z' is called "searches.csv" and 'file-4FKpqlvJOZqxNUfIJHAHRGJY' is called "contacts.csv". They are both datasets that contain data 
-    'file-elY239Qugdm6pfRvaGXymIzL' is a '.txt' containing data information about what each column represents in the csv data files above
+    'file-elY239Qugdm6pfRvaGXymIzL' is a '.txt' containing data information about what each column represents in the csv data files above. Use the information in the text file to know which columns to extract from each csv.
+    'file-TzOVAHko5TwyrRsaPySmIR0Z' is called "searches.csv" and 'file-4FKpqlvJOZqxNUfIJHAHRGJY' is called "contacts.csv". They are both datasets that contain data
     """
     return prompt
 
