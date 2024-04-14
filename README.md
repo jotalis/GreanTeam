@@ -3,7 +3,7 @@
 Finding an Airbnb is difficult, especially searching for one that's _just right._  Guests looking to stay in Dublin seem to share the same sentiment! In an effort to improve the guest experience on Airbnb, we analysed Strata's 2 datasets of Airbnb guests' searches in Dublin and their following inquiries to hosts.
 
 ## What it does
-Our project consists of three main components: **data visualization and analysis**, **machine learning**, and a **chatbot**. In this Datathon, we used data analysis as a __tool__ to the other parts of our project. As soon as we found which pieces of data were significant to whether a AirBnB user would have their booking accepted, we proceeded to create our machine learning model. This model takes input variables from the dataset provided to us by Melissa Data, but we didn't stop there. We continued on to make a chatbot that is capable of providing recommendations to users based on the data we analyzed.
+Our project consists of three main components: **data visualization and analysis**, **machine learning**, and a **chatbot**. In this Datathon, we used data analysis as a __tool__ to the other parts of our project. As soon as we found which pieces of data were significant to whether a AirBnB user would have their booking accepted, we proceeded to create our machine learning model. This model takes input variables from the dataset provided to us by Strata, but we didn't stop there. We continued on to make a chatbot that is capable of providing recommendations to users based on the data we analyzed.
 
 ## Exploration and Preprocessing
 * We were initially given two separate datasets
