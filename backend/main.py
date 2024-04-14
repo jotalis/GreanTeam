@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, Form, HTTPException, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 import asyncio, os, json
 import pandas as pd
@@ -8,7 +9,9 @@ from assistant_wrapper import update_user_prompt, process_user_prompt
 from dotenv import load_dotenv
 load_dotenv()
 
+
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = ["*"]
 
@@ -20,9 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# client = AsyncOpenAI(
-#     api_key=os.environ.get("OPENAI_API_KEY")
-# )
 client = OpenAI()
 
 @app.get("/", response_class=HTMLResponse)
@@ -43,28 +43,85 @@ async def get_form():
             justify-content: center;
             align-items: center;
             height: 100vh;
+            background-image : url('static/dublindive_bg2.png');
             background-color: #f5f5f5;
         }
         #chatbox {
-            width: 350px;
+            width: 500px;
+            height: 600px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             background: white;
             padding: 20px;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        #responseText {
-            height: 300px;
+        #messages {
+            height: 450px;
             overflow-y: auto;
             border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 20px;
             border-radius: 4px;
+            background: #efefef;
         }
-        #responseImage {
-            width: 100%;
+        .message {
+            padding: 8px;
+            margin: 4px 0;
             border-radius: 4px;
-            margin-bottom: 20px;
+            max-width: 65%;
+            align-self: flex-end;
+        }
+        .sent-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            margin-right: 10px; 
+            align-self: flex-end; 
+
+        }
+        .received-message {
+            background-color: #e0e0e0;
+            color: black;
+            margin-left: 10px; 
+            margin-right: auto;
+            align-self: flex-start;
+        }
+        .typing-indicator {
+            padding: 8px;
+            margin: 4px 10px auto 4px;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            max-width: 65%;
+            align-self: flex-start; 
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #9E9E9E;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 5px;
+            animation: typing 1s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .message-image {
+            max-width: 65%;
+            border-radius: 4px;
+            margin-top: 10px;
+            align-self: flex-end; 
+            margin-left: 10px;
+            margin-right: auto;
         }
         #messageInput {
             padding: 10px;
@@ -86,48 +143,100 @@ async def get_form():
         #sendButton:hover {
             background-color: #0056b3;
         }
+        #header-text {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            font-size: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #333;
+        }
     </style>
 </head>
 <body>
+<div id="header-text">BOBBY</div>
     <div id="chatbox">
-        <div id="responseText">Waiting for data...</div>
-        <img id="responseImage" src="" alt="No Image" style="display: none;">
+        <div id="messages"></div>
         <input type="text" id="messageInput" placeholder="Type your message here...">
         <button id="sendButton">Send</button>
     </div>
 
     <script>
         const ws = new WebSocket('ws://localhost:8000/ws');
+        const messagesElement = document.getElementById('messages');
 
         ws.onopen = function() {
             console.log('WebSocket connection established');
+            
         };
 
         ws.onmessage = function(event) {
             console.log('Message received: ', event.data);
+            removeTypingIndicator();
             const data = JSON.parse(event.data);
             if (data.text) {
-                document.getElementById('responseText').textContent = data.text;
+                addMessage(data.text, 'received-message');
             }
             if (data.image) {
-                const imgElement = document.getElementById('responseImage');
-                imgElement.src = `data:image/jpeg;base64,${data.image}`;
-                imgElement.style.display = 'block';
+                addImage(data.image);
             }
+            messagesElement.scrollTop = messagesElement.scrollHeight; // Scroll to the bottom
         };
 
         ws.onerror = function(error) {
             console.error('WebSocket Error: ', error);
+            removeTypingIndicator();
         };
 
         ws.onclose = function() {
             console.log('WebSocket connection closed');
+            removeTypingIndicator();
         };
 
         document.getElementById('sendButton').addEventListener('click', function() {
-            const message = document.getElementById('messageInput').value;
-            ws.send(message);
-            document.getElementById('messageInput').value = ''; // Clear the input box
+            const inputElement = document.getElementById('messageInput');
+            const message = inputElement.value;
+            if (message.trim() !== '') {
+                ws.send(message);
+                addMessage(message, 'sent-message');
+                showTypingIndicator();
+                inputElement.value = ''; // Clear the input box
+            }
+        });
+
+        function showTypingIndicator() {
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('message', 'typing-indicator');
+            typingIndicator.innerHTML = '<span></span><span></span><span></span> Bobby is typing...';
+            messagesElement.appendChild(typingIndicator);
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function addMessage(text, className) {
+            const newMessage = document.createElement('div');
+            newMessage.textContent = text;
+            newMessage.classList.add('message', className);
+            messagesElement.appendChild(newMessage);
+        }
+
+        function addImage(base64Image) {
+            const imgElement = document.createElement('img');
+            imgElement.src = `data:image/jpeg;base64,${base64Image}`;
+            imgElement.classList.add('message-image');
+            messagesElement.appendChild(imgElement);
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('sendButton').click();
+            }
         });
     </script>
 </body>
